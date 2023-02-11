@@ -1,4 +1,4 @@
-from Code.Screens.SyncBandsWithPCloudScreen import SyncBandsWithPCloudScreen
+from Code.Screens.SyncBandsWithMusicLibrary import SyncBandsWithMusicLibrary
 from Code.TeverusSDK.Screen import (
     Screen,
     Action,
@@ -17,11 +17,15 @@ class WelcomeScreen(Screen):
                 function=do_nothing,
             ),
             Action(
-                name="Sync tracked bands with pCloud",
-                function=SyncBandsWithPCloudScreen,
+                name="Sync tracked bands with your music library",
+                function=SyncBandsWithMusicLibrary,
             ),
             Action(
                 name="Add/remove tracked albums manually",
+                function=do_nothing,
+            ),
+            Action(
+                name="Settings",
                 function=do_nothing,
             ),
         ]

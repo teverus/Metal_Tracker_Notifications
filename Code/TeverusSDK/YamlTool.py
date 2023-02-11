@@ -22,8 +22,8 @@ class YamlTool:
         return settings
 
     def save_settings(self, data: dict):
-        with open(self.path_to_config_file, "w") as file:
-            yaml.dump(data, file, sort_keys=False)
+        with open(self.path_to_config_file, "w", encoding="utf-8") as file:
+            yaml.dump(data, file, sort_keys=False, allow_unicode=True)
 
     def update_a_setting(self, setting_name, new_value, config_section=SETTINGS):
         config = self.get_config()
