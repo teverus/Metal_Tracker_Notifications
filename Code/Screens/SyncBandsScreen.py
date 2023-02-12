@@ -11,7 +11,7 @@ from Code.TeverusSDK.Table import Table, WHITE
 from Code.TeverusSDK.YamlTool import YamlTool
 
 
-class SyncBandsWithMusicLibrary(Screen):
+class SyncBandsScreen(Screen):
     def __init__(self):
         self.actions = [
             Action(
@@ -28,7 +28,7 @@ class SyncBandsWithMusicLibrary(Screen):
             highlight=False,
         )
 
-        super(SyncBandsWithMusicLibrary, self).__init__(self.table, self.actions)
+        super(SyncBandsScreen, self).__init__(self.table, self.actions)
 
     @staticmethod
     def sync_bands_with_music_library():
@@ -39,6 +39,6 @@ class SyncBandsWithMusicLibrary(Screen):
         bands = [d for d in all_directories if " OST" not in d if d not in excluded]
 
         print(f" Bands in your music library: {len(bands)}")
-        YamlTool(Path("Files/bands_list.yaml")).save_settings({"Bands": bands})
+        YamlTool(Path("Files/bands_list.yaml")).save_yaml({"Bands": bands})
         print(" Syncing bands... Done")
         show_message(("Bands list is now synched with your music library", WHITE))

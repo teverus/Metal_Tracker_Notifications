@@ -1,4 +1,5 @@
-from Code.Screens.SyncBandsWithMusicLibrary import SyncBandsWithMusicLibrary
+from Code.Screens.CheckNewAlbumsScreen import CheckNewAlbumsScreen
+from Code.Screens.SyncBandsScreen import SyncBandsScreen
 from Code.TeverusSDK.Screen import (
     Screen,
     Action,
@@ -14,11 +15,11 @@ class WelcomeScreen(Screen):
         self.actions = [
             Action(
                 name="Check new albums on metal-tracker.com",
-                function=do_nothing,
+                function=CheckNewAlbumsScreen,
             ),
             Action(
                 name="Sync tracked bands with your music library",
-                function=SyncBandsWithMusicLibrary,
+                function=SyncBandsScreen,
             ),
             Action(
                 name="Add/remove tracked albums manually",
