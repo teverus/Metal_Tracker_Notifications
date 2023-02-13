@@ -227,15 +227,13 @@ def wait_for_enter():
 
 
 def show_message(
-    msg: tuple,
+    text_message,
+    color,
     border=" ",
     centered=True,
     upper=True,
     need_confirmation=True,
 ):
-    text_message = msg[0]
-    color = msg[1]
-
     print(color)
     print(f"{border * SCREEN_WIDTH}")
     message = text_message.upper() if upper else text_message
