@@ -12,7 +12,11 @@ METAL_TRACKER_SEARCH_URL = "https://www.metal-tracker.com/torrents/search.html"
 class CheckNewAlbumsScreen(Screen):
     def __init__(self):
         self.actions = [
-            Action(function=self.search_albums, immediate_action=True, go_back=True)
+            Action(
+                function=self.search_albums,
+                immediate_action=True,
+                go_back=True,
+            )
         ]
 
         self.table = Table(
