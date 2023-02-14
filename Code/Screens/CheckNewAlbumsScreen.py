@@ -11,6 +11,15 @@ METAL_TRACKER_SEARCH_URL = "https://www.metal-tracker.com/torrents/search.html"
 
 class CheckNewAlbumsScreen(Screen):
     def __init__(self):
+        self.found_albums = None
+        self.page = None
+        self.band = None
+        self.index = None
+        self.valid_albums = None
+        self.max_length = None
+        self.max_bands = None
+        self.bands_number = None
+
         self.actions = [
             Action(
                 function=self.search_albums,
@@ -29,40 +38,50 @@ class CheckNewAlbumsScreen(Screen):
         super(CheckNewAlbumsScreen, self).__init__(self.table, self.actions)
 
     def search_albums(self):
-        with sync_playwright() as p:
+        with sync_playwright() as self.p:
             print(" Starting browser...")
-            browser = p.firefox.launch(headless=True)
-            context = browser.new_context(viewport={"width": 1920, "height": 1080})
-            page = context.new_page()
-            page.goto(METAL_TRACKER_SEARCH_URL, wait_until="domcontentloaded")
+            self.page = self.get_page()
+            self.page.goto(METAL_TRACKER_SEARCH_URL, wait_until="domcontentloaded")
             print(" Starting browser... Done")
 
             bands = YamlTool(Path("Files/bands_list.yaml")).get_section("Bands")
-            bands_number = len(bands)
-            max_bands = len(str(bands_number))
-            max_length = max([len(b) for b in bands])
+            self.bands_number = len(bands)
+            self.max_bands = len(str(self.bands_number))
+            self.max_length = max([len(b) for b in bands])
 
             for index, band in enumerate(bands, 1):
-                page.locator("//input[@id='searchBox']").type(band)
-                page.locator("//input[@name='go-search']").click()
-                page.wait_for_load_state()
-                found_albums = page.locator("//div[@class='smallalbum']").all()
-                valid_albums = self.check_albums(found_albums, band)
+                self.index = index
+                self.band = band
 
-                percentage = str(int(index / bands_number * 100)).rjust(3)
-                info = f"{str(index).rjust(max_bands)}/{bands_number}|{percentage}%"
-                band_adjusted = str(band).ljust(max_length)
-                print(f" [{info}] {band_adjusted} {'#' * len(valid_albums)}")
+                self.search_for_albums()
+                self.check_found_albums()
+                self.show_info()
 
             show_message("All albums were processed", WHITE)
 
-    @staticmethod
-    def check_albums(found_albums, target_name):
-        valid_albums = []
+    def get_page(self, headless=True):
+        browser = self.p.firefox.launch(headless=headless)
+        context = browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = context.new_page()
 
-        for album in found_albums:
+        return page
+
+    def search_for_albums(self):
+        self.page.locator("//input[@id='searchBox']").type(self.band)
+        self.page.locator("//input[@name='go-search']").click()
+        self.page.wait_for_load_state()
+        self.found_albums = self.page.locator("//div[@class='smallalbum']").all()
+
+    def check_found_albums(self):
+        self.valid_albums = []
+
+        for album in self.found_albums:
             album_name = album.inner_text().split("\n")[0]
-            if album_name.lower().startswith(f"{target_name.lower()} - "):
-                valid_albums.append(album_name)
+            if album_name.lower().startswith(f"{self.band.lower()} - "):
+                self.valid_albums.append(album_name)
 
-        return valid_albums
+    def show_info(self):
+        percent = str(int(self.index / self.bands_number * 100)).rjust(3)
+        info = f"{str(self.index).rjust(self.max_bands)}/{self.bands_number}|{percent}%"
+        band_adjusted = str(self.band).ljust(self.max_length)
+        print(f" [{info}] {band_adjusted} {'#' * len(self.valid_albums)}")
