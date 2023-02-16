@@ -41,4 +41,4 @@ class SyncBandsScreen(Screen):
         print(f" Bands in your music library: {len(bands)}")
         YamlTool(Path("Files/bands_list.yaml")).save_yaml({"Bands": bands})
         print(" Syncing bands... Done")
-        show_message(("Bands list is now synched with your music library", WHITE))
+        show_message("Bands list is now synched with your music library", WHITE)
