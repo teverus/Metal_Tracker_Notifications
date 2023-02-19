@@ -46,12 +46,12 @@ class CheckNewAlbumsScreen(Screen):
             self.page.goto(METAL_TRACKER_SEARCH_URL)
             print(" Opening metal-tracker.com... Done")
 
-            for index, band in enumerate(self.bands[45:], 1):
+            for index, band in enumerate(self.bands, 1):
                 self.index = index
                 self.band = band
 
                 self.search_for_albums()
-                self.set_country_if_needed()
+                self.set_country()
                 self.check_found_albums()
                 self.show_info()
 
@@ -77,27 +77,18 @@ class CheckNewAlbumsScreen(Screen):
             album_name = album.inner_text().split("\n")[0]
             found_name = album_name.split(" - ")[0]
 
-            several_artists = "/" in found_name or "," in found_name
-            if several_artists:
-                character = "/" if "/" in found_name else ","
-                artist_name = self.split_and_check(found_name, character)
-                ...
-            # else:
-            #     ...
-            # if "/" in found_name:
-            #     artist_name = self.split_and_check(found_name, "/")
-            # elif "," in found_name:
-            #     artist_name = self.split_and_check(found_name, ",")
-            # elif " " in found_name and " " not in self.band:
-            #     artist_name = self.split_and_check(found_name, " ")
+            extra_characters = "..." in found_name
+            if extra_characters:
+                found_name = found_name.replace("...", "")
+
+            characters = ["/", ",", "&"]
+            delimiters = [char for char in characters if char in found_name]
+
+            if delimiters:
+                assert len(delimiters) == 1, f"{delimiters = }"
+                artist_name = self.split_and_check(found_name, delimiters[0])
             else:
                 artist_name = found_name
-
-            # --- For debugging --------------------------------------------------------
-            # actual_name = artist_name
-            # expect_name_ = self.band
-            # is_valid = artist_name == self.band
-            # --------------------------------------------------------------------------
 
             if artist_name == self.band:
                 self.valid_albums.append(album_name)
@@ -118,18 +109,10 @@ class CheckNewAlbumsScreen(Screen):
         band_adjusted = str(self.band).ljust(self.max_length)
         print(f" [{info}] {band_adjusted} {'#' * len(self.valid_albums)}")
 
-    def set_country_if_needed(self):
-        if len(self.found_albums) == 12:
+    def set_country(self):
+        if self.found_albums:
             selector = self.page.locator("//select[@id='SearchTorrentsForm_country']")
             selector.select_option("4")
             self.page.locator("//input[@id='submitForm']").click()
-            found_albums_old = self.found_albums[0].inner_text()
-            for _ in range(10):
-                self.found_albums = self.page.locator(
-                    "//div[@class='smallalbum']"
-                ).all()
-                found_albums_new = self.found_albums[0].inner_text()
-                if found_albums_new != found_albums_old:
-                    break
-                sleep(1)
-            ...
+            sleep(1.5)
+            self.found_albums = self.page.locator("//div[@class='smallalbum']").all()
