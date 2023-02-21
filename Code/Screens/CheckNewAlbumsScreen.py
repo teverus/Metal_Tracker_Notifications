@@ -1,5 +1,4 @@
 from pathlib import Path
-from time import sleep
 
 from playwright.sync_api import sync_playwright
 
@@ -7,7 +6,8 @@ from Code.TeverusSDK.Screen import Screen, Action, SCREEN_WIDTH, show_message
 from Code.TeverusSDK.Table import Table, WHITE
 from Code.TeverusSDK.YamlTool import YamlTool
 
-METAL_TRACKER_SEARCH_URL = "https://www.metal-tracker.com/torrents/search.html"
+HOST = "https://www.metal-tracker.com"
+METAL_TRACKER_SEARCH_URL = f"{HOST}/torrents/search.html"
 
 
 class CheckNewAlbumsScreen(Screen):
@@ -42,7 +42,7 @@ class CheckNewAlbumsScreen(Screen):
     def search_albums(self):
         with sync_playwright() as self.p:
             print(" Opening metal-tracker.com...")
-            self.page = self.get_page(False)
+            self.page = self.get_page()
             self.page.goto(METAL_TRACKER_SEARCH_URL)
             print(" Opening metal-tracker.com... Done")
 
@@ -74,24 +74,29 @@ class CheckNewAlbumsScreen(Screen):
         self.valid_albums = []
 
         for album in self.found_albums:
-            album_name = album.inner_text().split("\n")[0]
-            found_name = album_name.split(" - ")[0]
+            album_info = album.inner_text()
+            artist_and_album_title = album_info.split("\n")[0]
 
-            extra_characters = "..." in found_name
-            if extra_characters:
-                found_name = found_name.replace("...", "")
+            name = artist_and_album_title.split(" - ")[0]
+            name = name.replace("...", "") if "..." in name else name
 
-            characters = ["/", ",", "&"]
-            delimiters = [char for char in characters if char in found_name]
-
+            delimiters = [char for char in ["/", ",", "&"] if char in name]
             if delimiters:
                 assert len(delimiters) == 1, f"{delimiters = }"
-                artist_name = self.split_and_check(found_name, delimiters[0])
+                artist_name = self.split_and_check(name, delimiters[0])
             else:
-                artist_name = found_name
+                artist_name = name
 
             if artist_name == self.band:
-                self.valid_albums.append(album_name)
+                # unique_part = album.locator("//a").first.get_attribute("href")
+                # full_url = f"{HOST}{unique_part}"
+                #
+                # if "Год: " in album_info:
+                #     year = album_info.split("Год: ")[-1].split("\n")[0]
+                # else:
+                #     year = "---"
+
+                self.valid_albums.append(artist_and_album_title)
                 # TODO Проверять на включение в базу
 
     def split_and_check(self, album_artist_name, character):
@@ -114,5 +119,5 @@ class CheckNewAlbumsScreen(Screen):
             selector = self.page.locator("//select[@id='SearchTorrentsForm_country']")
             selector.select_option("4")
             self.page.locator("//input[@id='submitForm']").click()
-            sleep(1.5)
+            self.page.wait_for_load_state("networkidle")
             self.found_albums = self.page.locator("//div[@class='smallalbum']").all()
