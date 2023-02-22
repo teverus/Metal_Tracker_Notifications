@@ -19,6 +19,10 @@ class DataBase:
         self.connection = connect(self.path_to_db)
         self.table_name = path_to_database.stem
 
+    @property
+    def table(self):
+        return self.read_table()
+
     # === CREATE =======================================================================
     @classmethod
     def create_database_with_columns(
@@ -40,16 +44,23 @@ class DataBase:
 
         return data
 
+    def check_if_value_exists(self, value, column):
+        table = self.table
+        result = bool(len(table.loc[table[column] == value]))
+
+        return result
+
     # === UPDATE =======================================================================
     def write_to_table(self, df: DataFrame):
         df.to_sql(self.table_name, self.connection, index=False, if_exists="replace")
 
         self.connection = connect(self.path_to_db)
 
-    def append_to_table(self, df: DataFrame):
-        table = self.read_table()
+    def append_to_table(self, df: DataFrame, sort_by=False):
+        result = pd.concat([self.table, df], ignore_index=True)
 
-        result = pd.concat([table, df], ignore_index=True)
+        if sort_by:
+            result.sort_values(by=sort_by, inplace=True, ignore_index=True)
 
         self.write_to_table(result)
 
@@ -61,7 +72,6 @@ class DataBase:
         """
         index = [index] if not isinstance(index, list) else index
 
-        table = self.read_table()
-        table.drop(index=index, inplace=True)
+        self.table.drop(index=index, inplace=True)
 
-        self.write_to_table(table)
+        self.write_to_table(self.table)

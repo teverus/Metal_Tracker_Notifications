@@ -1,17 +1,28 @@
+import re
 from pathlib import Path
+from time import sleep
 
+from pandas import DataFrame
 from playwright.sync_api import sync_playwright
 
+from Code.TeverusSDK.DataBase import DataBase
 from Code.TeverusSDK.Screen import Screen, Action, SCREEN_WIDTH, show_message
 from Code.TeverusSDK.Table import Table, WHITE
 from Code.TeverusSDK.YamlTool import YamlTool
 
 HOST = "https://www.metal-tracker.com"
 METAL_TRACKER_SEARCH_URL = f"{HOST}/torrents/search.html"
+URL = "URL"
+BAND_NAME = "Name"
+COLUMNS = [BAND_NAME, "Album", "Year", URL]
+KNOWN = "known"
+NEW = "new"
 
 
 class CheckNewAlbumsScreen(Screen):
     def __init__(self):
+        self.database = DataBase(Path("Files/albums.db"))
+        self.known_albums = self.database.read_table()
         self.bands = YamlTool(Path("Files/bands_list.yaml")).get_section("Bands")
         self.bands_number = len(self.bands)
         self.max_bands = len(str(self.bands_number))
@@ -43,7 +54,16 @@ class CheckNewAlbumsScreen(Screen):
         with sync_playwright() as self.p:
             print(" Opening metal-tracker.com...")
             self.page = self.get_page()
-            self.page.goto(METAL_TRACKER_SEARCH_URL)
+            for _ in range(3):
+                try:
+                    self.page.goto(METAL_TRACKER_SEARCH_URL)
+                    break
+                except Exception:
+                    print(" Trying once again...")
+                    sleep(1)
+            else:
+                raise Exception(f"\n[ERROR] Couldn't open {METAL_TRACKER_SEARCH_URL}")
+
             print(" Opening metal-tracker.com... Done")
 
             for index, band in enumerate(self.bands, 1):
@@ -71,33 +91,52 @@ class CheckNewAlbumsScreen(Screen):
         self.found_albums = self.page.locator("//div[@class='smallalbum']").all()
 
     def check_found_albums(self):
-        self.valid_albums = []
+        self.valid_albums = {KNOWN: 0, NEW: 0}
 
         for album in self.found_albums:
-            album_info = album.inner_text()
-            artist_and_album_title = album_info.split("\n")[0]
+            info = album.inner_text()
+            artist_and_album_title = info.split("\n")[0]
 
-            name = artist_and_album_title.split(" - ")[0]
-            name = name.replace("...", "") if "..." in name else name
-
-            delimiters = [char for char in ["/", ",", "&"] if char in name]
-            if delimiters:
-                assert len(delimiters) == 1, f"{delimiters = }"
-                artist_name = self.split_and_check(name, delimiters[0])
-            else:
-                artist_name = name
+            # --- Band -----------------------------------------------------------------
+            artist_name = self.get_artist_name(artist_and_album_title)
 
             if artist_name == self.band:
-                # unique_part = album.locator("//a").first.get_attribute("href")
-                # full_url = f"{HOST}{unique_part}"
-                #
-                # if "Год: " in album_info:
-                #     year = album_info.split("Год: ")[-1].split("\n")[0]
-                # else:
-                #     year = "---"
+                # --- Album ------------------------------------------------------------
+                album_title = re.findall(r" - (.*)", artist_and_album_title)[0]
 
-                self.valid_albums.append(artist_and_album_title)
-                # TODO Проверять на включение в базу
+                # --- Year -------------------------------------------------------------
+                YEAR = "Год: "
+                year = info.split(YEAR)[-1].split("\n")[0] if YEAR in info else "---"
+
+                # --- Url --------------------------------------------------------------
+                unique_part = album.locator("//a").first.get_attribute("href")
+                full_url = f"{HOST}{unique_part}"
+
+                # --- Check if album exists in DB --------------------------------------
+                album_exists = self.database.check_if_value_exists(full_url, "URL")
+
+                # --- Add to DB if needed ----------------------------------------------
+                if not album_exists:
+                    df = DataFrame([], columns=COLUMNS)
+                    df.loc[0] = [artist_name, album_title, year, full_url]
+                    self.database.append_to_table(df, sort_by=BAND_NAME)
+
+                # --- Add to self.valid_albums for indication --------------------------
+                target_key = KNOWN if album_exists else NEW
+                self.valid_albums[target_key] += 1
+
+    def get_artist_name(self, artist_and_album_title):
+        name = artist_and_album_title.split(" - ")[0]
+        name = name.replace("...", "") if "..." in name else name
+
+        delimiters = [char for char in ["/", ",", "&"] if char in name]
+        if delimiters:
+            assert len(delimiters) == 1, f"{delimiters = }"
+            artist_name = self.split_and_check(name, delimiters[0])
+        else:
+            artist_name = name
+
+        return artist_name
 
     def split_and_check(self, album_artist_name, character):
         artists = album_artist_name.split(character)
@@ -112,7 +151,9 @@ class CheckNewAlbumsScreen(Screen):
         percent = str(int(self.index / self.bands_number * 100)).rjust(3)
         info = f"{str(self.index).rjust(self.max_bands)}/{self.bands_number}|{percent}%"
         band_adjusted = str(self.band).ljust(self.max_length)
-        print(f" [{info}] {band_adjusted} {'#' * len(self.valid_albums)}")
+        known_albums = "#" * self.valid_albums[KNOWN]
+        new_albums = "!" * self.valid_albums[NEW]
+        print(f" [{info}] {band_adjusted} {new_albums}{known_albums}")
 
     def set_country(self):
         if self.found_albums:
