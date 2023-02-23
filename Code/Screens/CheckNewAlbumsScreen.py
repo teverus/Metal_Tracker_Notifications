@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from pathlib import Path
 from time import sleep
 
@@ -52,6 +53,7 @@ class CheckNewAlbumsScreen(Screen):
 
     def search_albums(self):
         with sync_playwright() as self.p:
+            time_start = datetime.now()
             print(" Opening metal-tracker.com...")
             self.page = self.get_page()
             for _ in range(3):
@@ -75,7 +77,9 @@ class CheckNewAlbumsScreen(Screen):
                 self.check_found_albums()
                 self.show_info()
 
-            show_message("All albums were processed", WHITE)
+            time_finish = datetime.now()
+            time_diff = str(time_finish - time_start).split(".")[0]
+            show_message(f"All albums were processed in {time_diff}", WHITE)
 
     def get_page(self, headless=True):
         browser = self.p.firefox.launch(headless=headless)
