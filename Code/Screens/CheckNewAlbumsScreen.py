@@ -73,7 +73,6 @@ class CheckNewAlbumsScreen(Screen):
                 self.band = band
 
                 self.search_for_albums()
-                self.set_country()
                 self.check_found_albums()
                 self.show_info()
 
@@ -89,9 +88,18 @@ class CheckNewAlbumsScreen(Screen):
         return page
 
     def search_for_albums(self):
-        self.page.locator("//input[@id='searchBox']").type(self.band)
-        self.page.locator("//input[@name='go-search']").click()
-        self.page.wait_for_load_state()
+        search_input = "//input[@id='SearchTorrentsForm_nameTorrent']"
+        country = "//select[@id='SearchTorrentsForm_country']"
+        finland = "4"
+        search_button = "//input[@id='submitForm']"
+
+        self.page.locator(search_input).clear()
+        self.page.locator(search_input).type(self.band)
+        self.page.locator(country).select_option(finland)
+        self.page.locator(search_button).click()
+        self.page.wait_for_load_state("networkidle")
+        sleep(2)
+
         self.found_albums = self.page.locator("//div[@class='smallalbum']").all()
 
     def check_found_albums(self):
@@ -158,11 +166,3 @@ class CheckNewAlbumsScreen(Screen):
         known_albums = "#" * self.valid_albums[KNOWN]
         new_albums = "!" * self.valid_albums[NEW]
         print(f" [{info}] {band_adjusted} {new_albums}{known_albums}")
-
-    def set_country(self):
-        if self.found_albums:
-            selector = self.page.locator("//select[@id='SearchTorrentsForm_country']")
-            selector.select_option("4")
-            self.page.locator("//input[@id='submitForm']").click()
-            self.page.wait_for_load_state("networkidle")
-            self.found_albums = self.page.locator("//div[@class='smallalbum']").all()
