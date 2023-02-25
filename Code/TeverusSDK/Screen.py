@@ -26,7 +26,7 @@ class Action:
         self,
         name=None,
         function=None,
-        arguments=None,
+        arguments: dict = None,
         immediate_action=False,
         go_back=False,
         shortcut: Union[bool, list] = False,
@@ -211,7 +211,7 @@ PAGINATION = {Key.Z: -1, Key.Z_RU: -1, Key.X: 1, Key.X_RU: 1}
 ########################################################################################
 
 
-def do_nothing():
+def do_nothing(*args, **kwargs):
     pass
 
 
