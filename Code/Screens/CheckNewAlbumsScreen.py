@@ -15,7 +15,7 @@ HOST = "https://www.metal-tracker.com"
 METAL_TRACKER_SEARCH_URL = f"{HOST}/torrents/search.html"
 URL = "URL"
 BAND_NAME = "Name"
-COLUMNS = [BAND_NAME, "Album", "Year", URL]
+COLUMNS = [BAND_NAME, "Album", "Year", URL, "Listened"]
 KNOWN = "known"
 NEW = "new"
 
@@ -126,7 +126,7 @@ class CheckNewAlbumsScreen(Screen):
                 # --- Add to DB if needed ----------------------------------------------
                 if not album_exists:
                     df = DataFrame([], columns=COLUMNS)
-                    df.loc[0] = [artist_name, album_title, year, full_url]
+                    df.loc[0] = [artist_name, album_title, year, full_url, "0"]
                     self.database.append_to_table(df, sort_by=BAND_NAME)
 
                 # --- Add to self.valid_albums for indication --------------------------
