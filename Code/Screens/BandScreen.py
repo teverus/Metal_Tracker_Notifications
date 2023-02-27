@@ -1,29 +1,46 @@
+import webbrowser
 from pathlib import Path
 
+from Code.AlbumEntry import AlbumEntry
 from Code.TeverusSDK.DataBase import DataBase
 from Code.TeverusSDK.Screen import (
     Screen,
     SCREEN_WIDTH,
     GO_BACK_ACTION,
     Action,
-    do_nothing,
 )
-from Code.TeverusSDK.Table import Table
+from Code.TeverusSDK.Table import Table, ColumnWidth
 
 
 class BandScreen(Screen):
     def __init__(self, band_name):
         self.band_name = band_name
         self.albums = self.get_albums()
+        max_len = max([len(album.title) + 7 for album in self.albums])  # 7 is [XXXX]_
 
         self.actions = [
-            Action(name=album_name, function=do_nothing) for album_name in self.albums
+            [
+                Action(
+                    name=f"[{album.year}] {album.title.ljust(max_len)}",
+                    function=self.open_album_online,
+                    arguments={"album": album},
+                ),
+                Action(
+                    name=album.listened,
+                    function=self.change_state,
+                    arguments={"album": album},
+                ),
+            ]
+            for album in self.albums
         ]
 
         self.table = Table(
             table_title=band_name,
-            rows=[action.name for action in self.actions],
-            rows_bottom_border="-",
+            headers=["Album name", "Current state".center(35)],
+            headers_upper="=",
+            rows=[[column.name for column in row] for row in self.actions],
+            rows_top_border=False,
+            column_widths={0: ColumnWidth.FULL, 1: ColumnWidth.FIT},
             table_width=SCREEN_WIDTH,
             footer=[GO_BACK_ACTION],
         )
@@ -32,15 +49,17 @@ class BandScreen(Screen):
 
     def get_albums(self):
         df = DataBase(Path("Files/albums.db")).read_table()
-        data = df.loc[df.Name == self.band_name][["Year", "Album"]]
+        data = df.loc[df.Name == self.band_name]
+        data.sort_values(by="Year", ascending=False, inplace=True)
 
-        albums = []
-        for index in range(len(data)):
-            year, album = list(data.iloc[index])
-            albums.append(f"[{year}] {album}")
+        albums = [AlbumEntry(*list(data.iloc[index])) for index in range(len(data))]
 
-        max_length = max([len(a) for a in albums])
-        adjusted_albums = [a.ljust(max_length) for a in albums]
-        sorted_albums = sorted(adjusted_albums, reverse=True)
+        return albums
 
-        return sorted_albums
+    @staticmethod
+    def open_album_online(album):
+        webbrowser.open(album.url)
+
+    def change_state(self, album):
+        # TODO change_state
+        ...

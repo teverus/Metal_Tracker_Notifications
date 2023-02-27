@@ -6,6 +6,7 @@ from time import sleep
 from pandas import DataFrame
 from playwright.sync_api import sync_playwright
 
+from Code.AlbumEntry import AlbumEntry
 from Code.TeverusSDK.DataBase import DataBase
 from Code.TeverusSDK.Screen import Screen, Action, SCREEN_WIDTH, show_message
 from Code.TeverusSDK.Table import Table, WHITE
@@ -15,7 +16,7 @@ HOST = "https://www.metal-tracker.com"
 METAL_TRACKER_SEARCH_URL = f"{HOST}/torrents/search.html"
 URL = "URL"
 BAND_NAME = "Name"
-COLUMNS = [BAND_NAME, "Album", "Year", URL, "Listened"]
+COLUMNS = [BAND_NAME, "Album", "Year", URL, "Status"]
 KNOWN = "known"
 NEW = "new"
 
@@ -104,29 +105,31 @@ class CheckNewAlbumsScreen(Screen):
         for album in self.found_albums:
             info = album.inner_text()
             artist_and_album_title = info.split("\n")[0]
+            entry = AlbumEntry()
 
             # --- Band -----------------------------------------------------------------
-            artist_name = self.get_artist_name(artist_and_album_title)
+            entry.band = self.get_artist_name(artist_and_album_title)
 
-            if artist_name == self.band:
+            if entry.band == self.band:
                 # --- Album ------------------------------------------------------------
-                album_title = re.findall(r" - (.*)", artist_and_album_title)[0]
+                entry.title = re.findall(r" - (.*)", artist_and_album_title)[0]
 
                 # --- Year -------------------------------------------------------------
                 YEAR = "Год: "
-                year = info.split(YEAR)[-1].split("\n")[0] if YEAR in info else "---"
+                result = info.split(YEAR)[-1].split("\n")[0] if YEAR in info else "----"
+                entry.year = result
 
                 # --- Url --------------------------------------------------------------
                 unique_part = album.locator("//a").first.get_attribute("href")
-                full_url = f"{HOST}{unique_part}"
+                entry.url = f"{HOST}{unique_part}"
 
                 # --- Check if album exists in DB --------------------------------------
-                album_exists = self.database.check_if_value_exists(full_url, "URL")
+                album_exists = self.database.check_if_value_exists(entry.url, "URL")
 
                 # --- Add to DB if needed ----------------------------------------------
                 if not album_exists:
                     df = DataFrame([], columns=COLUMNS)
-                    df.loc[0] = [artist_name, album_title, year, full_url, "0"]
+                    df.loc[0] = [entry.band, entry.title, entry.year, entry.url, "New"]
                     self.database.append_to_table(df, sort_by=BAND_NAME)
 
                 # --- Add to self.valid_albums for indication --------------------------

@@ -23,6 +23,7 @@ class Table:
         self,
         # Headers
         headers: list = None,
+        headers_top_border="=",
         headers_upper=True,
         headers_centered=True,
         # Rows
@@ -62,6 +63,7 @@ class Table:
 
         # Headers
         self.headers = headers
+        self.headers_top_border = headers_top_border
         self.headers_upper = headers_upper
         self.headers_centered = headers_centered
 
@@ -116,6 +118,9 @@ class Table:
 
         # Print headers if any
         if self.headers:
+            if self.headers_top_border:
+                print(self.headers_top_border * self.table_width)
+
             if self.headers_upper:
                 self.headers = [h.upper() for h in self.headers]
 
