@@ -17,7 +17,10 @@ class WelcomeScreen(Screen):
                 name="Check new albums on metal-tracker.com",
                 function=CheckNewAlbumsScreen,
             ),
-            Action(name="See all bands", function=SeeAllBandsScreen),
+            Action(
+                name="See all bands",
+                function=SeeAllBandsScreen,
+            ),
             Action(
                 name="Sync tracked bands with your music library",
                 function=SyncBandsScreen,
