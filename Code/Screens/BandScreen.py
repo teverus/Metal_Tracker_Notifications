@@ -1,7 +1,7 @@
-import webbrowser
 from pathlib import Path
 
 from Code.AlbumEntry import AlbumEntry, NEW, CHECKED
+from Code.Modules.OpenAlbumOnline import open_album_online
 from Code.TeverusSDK.DataBase import DataBase
 from Code.TeverusSDK.Screen import (
     Screen,
@@ -24,7 +24,7 @@ class BandScreen(Screen):
             [
                 Action(
                     name=f"[{album.year}] {album.title.ljust(max_len)}",
-                    function=self.open_album_online,
+                    function=open_album_online,
                     arguments={"album": album},
                 ),
                 Action(
@@ -33,7 +33,7 @@ class BandScreen(Screen):
                     arguments={"main": self, "album": album},
                 ),
             ]
-            for index, album in enumerate(self.albums)
+            for album in self.albums
         ]
 
         self.table = Table(
@@ -57,10 +57,6 @@ class BandScreen(Screen):
         albums = [AlbumEntry(*list(data.iloc[index])) for index in range(len(data))]
 
         return albums
-
-    @staticmethod
-    def open_album_online(album):
-        webbrowser.open(album.url)
 
     def change_state(self, main, album):
         self.change_value_on_backend(album)

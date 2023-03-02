@@ -1,5 +1,6 @@
 from Code.Screens.CheckNewAlbumsScreen import CheckNewAlbumsScreen
 from Code.Screens.SeeAllBandsScreen import SeeAllBandsScreen
+from Code.Screens.ShowNewAlbumsOnlyScreen import ShowNewAlbumsOnlyScreen
 from Code.Screens.SyncBandsScreen import SyncBandsScreen
 from Code.TeverusSDK.Screen import (
     Screen,
@@ -21,6 +22,7 @@ class WelcomeScreen(Screen):
                 name="See all bands",
                 function=SeeAllBandsScreen,
             ),
+            Action(name="Show new albums only", function=ShowNewAlbumsOnlyScreen),
             Action(
                 name="Sync tracked bands with your music library",
                 function=SyncBandsScreen,
