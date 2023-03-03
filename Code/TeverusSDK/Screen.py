@@ -57,7 +57,9 @@ class Action:
 
 
 class Screen:
-    def __init__(self, table: Table, actions: Union[list[Action] | list[list[Action]]]):
+    def __init__(
+        self, table: Table, actions: Union[list[Action] or list[list[Action]]]
+    ):
         self.table = table
         self.actions = actions
 

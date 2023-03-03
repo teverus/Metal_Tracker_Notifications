@@ -1,11 +1,11 @@
 from Code.AlbumEntry import NEW, AlbumEntry
+from Code.Modules.ChangeAlbumStatus import change_album_status
 from Code.Modules.OpenAlbumOnline import open_album_online
 from Code.TeverusSDK.Screen import (
     Screen,
     SCREEN_WIDTH,
     GO_BACK_ACTION,
     Action,
-    do_nothing,
 )
 from Code.TeverusSDK.Table import Table, ColumnWidth
 from Code.constants import DATABASE
@@ -27,7 +27,8 @@ class ShowNewAlbumsOnlyScreen(Screen):
                 ),
                 Action(
                     name=album.listened,
-                    function=do_nothing,
+                    function=change_album_status,
+                    arguments={"main": self, "album": album},
                 ),
             ]
             for album in self.new_albums
@@ -35,7 +36,7 @@ class ShowNewAlbumsOnlyScreen(Screen):
 
         self.table = Table(
             table_title="New albums ",
-            headers=["Album name", "Current state".center(35)],
+            headers=["Album name", "Current status".center(35)],
             rows=[[column.name for column in row] for row in self.actions],
             rows_top_border=False,
             table_width=SCREEN_WIDTH,

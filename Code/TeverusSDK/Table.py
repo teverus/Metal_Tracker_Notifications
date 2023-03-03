@@ -27,7 +27,7 @@ class Table:
         headers_upper=True,
         headers_centered=True,
         # Rows
-        rows: Union[list[str] | list[list[str]]] = None,
+        rows: Union[list[str] or list[list[str]]] = None,
         rows_top_border="=",
         rows_bottom_border="=",
         rows_centered=True,
