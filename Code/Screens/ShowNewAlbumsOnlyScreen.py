@@ -28,7 +28,7 @@ class ShowNewAlbumsOnlyScreen(Screen):
                 Action(
                     name=album.listened,
                     function=change_album_status,
-                    arguments={"main": self, "album": album},
+                    arguments={"main": self, "album": album, "remove_band": True},
                 ),
             ]
             for album in self.new_albums

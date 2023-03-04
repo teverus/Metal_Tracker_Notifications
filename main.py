@@ -22,7 +22,10 @@ class WelcomeScreen(Screen):
                 name="See all bands",
                 function=SeeAllBandsScreen,
             ),
-            Action(name="Show new albums only", function=ShowNewAlbumsOnlyScreen),
+            Action(
+                name="Show new albums only",
+                function=ShowNewAlbumsOnlyScreen,
+            ),
             Action(
                 name="Sync tracked bands with your music library",
                 function=SyncBandsScreen,

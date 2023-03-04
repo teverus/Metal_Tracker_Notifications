@@ -4,9 +4,9 @@ from Code.constants import DATABASE, ERROR_START, ERROR_END
 STATUS_TRANSITION = {NEW: CHECKED, CHECKED: NEW}
 
 
-def change_album_status(main, album):
+def change_album_status(main, album, remove_band=False):
+    change_value_on_frontend(main, album, remove_band)
     change_value_on_backend(album)
-    change_value_on_frontend(main, album)
 
 
 def change_value_on_backend(album):
@@ -23,8 +23,11 @@ def change_value_on_backend(album):
     DATABASE.write_to_table(df)
 
 
-def change_value_on_frontend(main, album):
-    target_album = f"[{album.year}] {album.title}"
+def change_value_on_frontend(main, album, remove_band):
+    if remove_band:
+        target_album = f"{album.band} [{album.year}] {album.title}"
+    else:
+        target_album = f"[{album.year}] {album.title}"
     indices = [i for i, r in enumerate(main.table.rows) if r[0].strip() == target_album]
     assert len(indices) == 1, (
         f"{ERROR_START}\n"
