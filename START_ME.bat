@@ -21,3 +21,4 @@ py main.py
 :    So that we can read logs if needed
 : ======================================================================================
 timeout -1
+exit

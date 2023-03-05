@@ -36,7 +36,11 @@ class CheckNewAlbumsScreen(Screen):
         self.valid_albums = None
 
         self.actions = [
-            Action(function=self.check_new_albums, immediate_action=True, go_back=True)
+            Action(
+                function=self.check_new_albums,
+                immediate_action=True,
+                go_back=True,
+            )
         ]
 
         self.table = Table(
