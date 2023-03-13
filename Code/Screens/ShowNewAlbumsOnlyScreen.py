@@ -41,7 +41,7 @@ class ShowNewAlbumsOnlyScreen(Screen):
             rows_top_border=False,
             table_width=SCREEN_WIDTH,
             column_widths={0: ColumnWidth.FULL, 1: ColumnWidth.FIT},
-            max_rows=34,
+            max_rows=35,
             footer=[GO_BACK_ACTION],
         )
         super(ShowNewAlbumsOnlyScreen, self).__init__(self.table, self.actions)

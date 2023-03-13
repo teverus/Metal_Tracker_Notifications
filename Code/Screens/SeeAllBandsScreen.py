@@ -39,7 +39,7 @@ class SeeAllBandsScreen(Screen):
         self.df = self.database.read_table()
 
         self.bands = sorted(set(list(self.df.Name)))
-        self.bands = divide_into_columns(self.bands, max_rows=36)
+        self.bands = divide_into_columns(self.bands, max_rows=37)
 
         self.actions = [
             [
@@ -57,7 +57,7 @@ class SeeAllBandsScreen(Screen):
             rows=self.bands,
             footer=[GO_BACK_ACTION],
             table_width=SCREEN_WIDTH,
-            max_rows=36,
+            max_rows=37,
         )
 
         super(SeeAllBandsScreen, self).__init__(self.table, self.actions)

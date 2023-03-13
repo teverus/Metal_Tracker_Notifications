@@ -51,7 +51,7 @@ class BandScreen(Screen):
     def get_albums(self):
         df = DataBase(Path("Files/albums.db")).read_table()
         data = df.loc[df.Name == self.band_name]
-        data.sort_values(by="Year", ascending=False, inplace=True)
+        data = data.sort_values(by="Year", ascending=False)
 
         albums = [AlbumEntry(*list(data.iloc[index])) for index in range(len(data))]
 
