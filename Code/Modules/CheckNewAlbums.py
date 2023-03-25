@@ -6,7 +6,7 @@ from pandas import DataFrame
 from playwright.sync_api import sync_playwright
 
 from Code.AlbumEntry import AlbumEntry
-from Code.TeverusSDK.Screen import show_message, SCREEN_WIDTH
+from Code.TeverusSDK.Screen import show_message, SCREEN_WIDTH, wait_for_enter
 from Code.TeverusSDK.Table import WHITE, Table
 
 HOST = "https://www.metal-tracker.com"
@@ -23,13 +23,13 @@ class CheckNewAlbums:
         # --- VARIABLES ----------------------------------------------------------------
         self.time_start = datetime.now()
         self.page = None
-        self.valid_albums = None
         self.found_albums = None
         self.main = main
         self.database = self.main.database
         self.max_bands = self.main.max_bands
         self.bands_number = self.main.bands_number
         self.max_length = self.main.max_length
+        self.new_albums = []
 
         # --- MAIN ACTION --------------------------------------------------------------
         with sync_playwright() as self.p:
@@ -43,7 +43,22 @@ class CheckNewAlbums:
                 self.check_found_albums()
                 self.show_info()
 
-            show_message("All albums were processed", WHITE)
+            msg = "Check new albums" if self.new_albums else "All albums were processed"
+            show_message(
+                message=msg,
+                color=WHITE,
+                need_confirmation=False,
+            )
+
+            half = int((SCREEN_WIDTH - 8) / 2)
+            if self.new_albums:
+                print(" ")
+                [
+                    print(f"{album.band.rjust(half)} [{album.year}] {album.title}")
+                    for album in self.new_albums
+                ]
+
+            wait_for_enter()
 
     ####################################################################################
     #    HELPERS                                                                       #
@@ -87,8 +102,6 @@ class CheckNewAlbums:
         self.found_albums = self.page.locator("//div[@class='smallalbum']").all()
 
     def check_found_albums(self):
-        self.valid_albums = {KNOWN: 0, NEW: 0}
-
         for album in self.found_albums:
             info = album.inner_text()
 
@@ -120,9 +133,7 @@ class CheckNewAlbums:
                     df.loc[0] = [entry.band, entry.title, entry.year, entry.url, "New"]
                     self.database.append_to_table(df, sort_by=BAND_NAME)
 
-                # --- Add to self.valid_albums for indication --------------------------
-                target_key = KNOWN if album_exists else NEW
-                self.valid_albums[target_key] += 1
+                    self.new_albums.append(entry)
 
     def get_artist_name(self, artist_and_album_title):
         name = artist_and_album_title.split(" - ")[0]

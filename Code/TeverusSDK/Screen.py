@@ -229,7 +229,7 @@ def wait_for_enter():
 
 
 def show_message(
-    text_message,
+    message,
     color,
     border=" ",
     centered=True,
@@ -238,8 +238,8 @@ def show_message(
 ):
     print(color)
     print(f"{border * SCREEN_WIDTH}")
-    message = text_message.upper() if upper else text_message
-    text = message.center if centered else message.ljust
+    msg = message.upper() if upper else message
+    text = msg.center if centered else msg.ljust
     print(text(SCREEN_WIDTH))
     print(f"{border * SCREEN_WIDTH}{END_HIGHLIGHT}")
 
